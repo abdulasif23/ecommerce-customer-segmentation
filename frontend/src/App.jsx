@@ -1,77 +1,69 @@
 ﻿import React, { useState, useEffect } from "react";
-import { 
-  ShoppingCart, LayoutDashboard, Store, Tag, Sparkles, 
-  AlertCircle, Search, Star, Zap, CheckCircle2, PackageCheck, 
-  RefreshCw, User, Cpu, BarChart2, PieChart as PieIcon
+import {
+  ShoppingCart, LayoutDashboard, Store, Tag, Sparkles,
+  AlertCircle, Search, Star, Zap, CheckCircle2, PackageCheck,
+  RefreshCw, User, Cpu, BarChart2, PieChart as PieIcon, Lock, UserPlus, X
 } from "lucide-react";
-import { 
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, 
+import {
+  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from "recharts";
 
 const API_BASE = "http://127.0.0.1:8000/api";
 
 const CLUSTER_COLORS = {
-  0: "#2563eb", // VIP: Blue
-  1: "#dc2626", // At-Risk: Red
-  2: "#16a34a", // New: Green
-  3: "#d97706"  // Loyal: Amber
+  0: "#2563eb",
+  1: "#dc2626",
+  2: "#16a34a",
+  3: "#d97706"
 };
-
-const STATIC_CATALOG = [
-  { id: 1, title: "Nike Air Zoom Pegasus 40 Running Shoes", price: 119.99, original_price: 159.99, rating: 4.8, reviews: 1420, category: "Footwear", image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80", cross_sell_category: "Sports & Fitness", tag: "Trending" },
-  { id: 2, title: "Puma Men Retro Low-Top Sneakers", price: 64.50, original_price: 89.00, rating: 4.5, reviews: 870, category: "Footwear", image_url: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=600&q=80", cross_sell_category: "Sports & Fitness", tag: "Hot Deal" },
-  { id: 3, title: "Adidas Ultraboost Light Running Shoes", price: 139.00, original_price: 180.00, rating: 4.9, reviews: 2310, category: "Footwear", image_url: "https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=600&q=80", cross_sell_category: "Sports & Fitness", tag: "Bestseller" },
-  { id: 4, title: "Jordan Retro High OG Basketball Shoes", price: 179.99, original_price: 219.99, rating: 4.9, reviews: 3100, category: "Footwear", image_url: "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=600&q=80", cross_sell_category: "Sports & Fitness", tag: "Limited" },
-  { id: 5, title: "Apple iPhone 15 Pro (128GB) - Blue", price: 899.00, original_price: 999.00, rating: 4.9, reviews: 5820, category: "Mobiles", image_url: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&q=80", cross_sell_category: "Electronics Accessories", tag: "Flagship" },
-  { id: 6, title: "Samsung Galaxy S24 Ultra 5G (256GB)", price: 1149.00, original_price: 1299.00, rating: 4.8, reviews: 3100, category: "Mobiles", image_url: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=600&q=80", cross_sell_category: "Electronics Accessories", tag: "Top Rated" },
-  { id: 7, title: "OnePlus 12 5G (Flowy Emerald)", price: 799.00, original_price: 899.00, rating: 4.7, reviews: 1840, category: "Mobiles", image_url: "https://images.unsplash.com/photo-1580910051074-3eb694886505?w=600&q=80", cross_sell_category: "Electronics Accessories", tag: "Super Fast" },
-  { id: 8, title: "Apple MacBook Air 13-inch M2", price: 999.00, original_price: 1099.00, rating: 4.9, reviews: 4200, category: "Laptops", image_url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80", cross_sell_category: "Electronics Accessories", tag: "Editor Choice" },
-  { id: 9, title: "Dell XPS 15 OLED Laptop", price: 1399.00, original_price: 1599.00, rating: 4.7, reviews: 1230, category: "Laptops", image_url: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=600&q=80", cross_sell_category: "Electronics Accessories", tag: "Performance" },
-  { id: 10, title: "Sony WH-1000XM5 Headphones", price: 348.00, original_price: 399.00, rating: 4.9, reviews: 3890, category: "Audio", image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80", cross_sell_category: "Electronics Accessories", tag: "ANC Audio" },
-  { id: 11, title: "Apple Watch Series 9 GPS 45mm", price: 389.00, original_price: 429.00, rating: 4.8, reviews: 1950, category: "Audio", image_url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80", cross_sell_category: "Sports & Fitness", tag: "Smart Health" },
-  { id: 12, title: "Anti-Blister Running Socks (3 Pairs)", price: 14.99, original_price: 24.99, rating: 4.7, reviews: 940, category: "Sports & Fitness", image_url: "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=600&q=80", cross_sell_category: "Footwear", tag: "Add-on" },
-  { id: 13, title: "Gym Water Bottle (1L)", price: 19.99, original_price: 29.99, rating: 4.6, reviews: 1100, category: "Sports & Fitness", image_url: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=600&q=80", cross_sell_category: "Footwear", tag: "Essential" },
-  { id: 14, title: "Wireless Power Bank 10,000mAh", price: 39.99, original_price: 59.99, rating: 4.8, reviews: 2150, category: "Electronics Accessories", image_url: "https://images.unsplash.com/photo-1609592807963-380d3810143a?w=600&q=80", cross_sell_category: "Mobiles", tag: "Fast Charge" },
-  { id: 15, title: "Drop-Proof Slim Case", price: 16.50, original_price: 25.00, rating: 4.7, reviews: 3200, category: "Electronics Accessories", image_url: "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=600&q=80", cross_sell_category: "Mobiles", tag: "Protection" }
-];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("store");
   const [customerId, setCustomerId] = useState(1);
-  const [customerName, setCustomerName] = useState("Shaik Abdul Asif");
-  const [products, setProducts] = useState(STATIC_CATALOG);
+  const [customerName, setCustomerName] = useState("");
+  const [isIdLocked, setIsIdLocked] = useState(false);
+  const [registeredCustomers, setRegisteredCustomers] = useState([]);
+
+  const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState({});
-  const [lastInteractedItem, setLastInteractedItem] = useState(STATIC_CATALOG[0]);
+  const [lastInteractedItem, setLastInteractedItem] = useState(null);
+  const [lastPurchasedReceipt, setLastPurchasedReceipt] = useState(null);
   const [notification, setNotification] = useState("");
-  
+  const [errorBanner, setErrorBanner] = useState("");
+
   // Admin Data State
   const [adminOrders, setAdminOrders] = useState([]);
   const [adminClusters, setAdminClusters] = useState({ total_customers: 0, clusters: [], scatter_data: [] });
   const [isRetraining, setIsRetraining] = useState(false);
 
   const [segmentData, setSegmentData] = useState({
-    segment_name: "VIP / Continuous Buyer",
-    marketing_action: "Loyalty Tier Elite: You buy frequently with us! Unlocked 20% discount on all orders.",
-    discount_code: "VIPCONTINUOUS20",
-    loyalty_discount_pct: 20,
-    frequency: 6,
-    recency_days: 2,
-    monetary: 1420.00,
+    segment_name: "New Guest",
+    marketing_action: "Welcome offer! Get flat 5% off on your first order.",
+    discount_code: "WELCOME5",
+    loyalty_discount_pct: 5,
+    frequency: 0,
+    recency_days: 0,
+    monetary: 0.0,
     is_inactive: false
   });
 
   useEffect(() => {
     fetchProducts();
-    fetchUserSegment();
+    fetchRegisteredCustomers();
+  }, []);
+
+  useEffect(() => {
+    fetchCustomerIdentityAndSegment(customerId);
   }, [customerId]);
 
   useEffect(() => {
     if (activeTab === "admin") {
       fetchAdminData();
       fetchAdminOrders();
+      fetchRegisteredCustomers();
     }
   }, [activeTab]);
 
@@ -80,19 +72,72 @@ export default function App() {
       const res = await fetch(`${API_BASE}/products`);
       if (res.ok) {
         const data = await res.json();
-        if (data && data.length > 0) setProducts(data);
+        if (data && data.length > 0) {
+          setProducts(data);
+          setLastInteractedItem((prev) => prev || data[0]);
+        }
       }
     } catch (err) {}
   };
 
-  const fetchUserSegment = async () => {
+  const fetchRegisteredCustomers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/users/${customerId}/segment`);
+      const res = await fetch(`${API_BASE}/customers`);
+      if (res.ok) {
+        const data = await res.json();
+        setRegisteredCustomers(data);
+      }
+    } catch (err) {}
+  };
+
+  const fetchCustomerIdentityAndSegment = async (idToFetch) => {
+    if (!idToFetch || idToFetch < 1) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/${idToFetch}/segment`);
       if (res.ok) {
         const data = await res.json();
         setSegmentData(data);
+        if (data.is_registered && data.registered_name) {
+          setCustomerName(data.registered_name);
+          setIsIdLocked(true);
+        } else {
+          setCustomerName("");
+          setIsIdLocked(false);
+        }
       }
     } catch (err) {}
+  };
+
+  const handleRegisterCustomer = async () => {
+    if (!customerName.trim()) {
+      setErrorBanner("Please enter a name to register this Customer ID.");
+      setTimeout(() => setErrorBanner(""), 4000);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/customers/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer_id: customerId,
+          customer_name: customerName.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorBanner(data.detail || "Could not register ID.");
+        setTimeout(() => setErrorBanner(""), 5000);
+        return;
+      }
+      setCustomerName(data.customer_name);
+      setIsIdLocked(true);
+      fetchRegisteredCustomers();
+      setNotification(`Customer ID #${customerId} permanently registered to "${data.customer_name}" in MySQL!`);
+      setTimeout(() => setNotification(""), 4000);
+    } catch (err) {
+      setErrorBanner("Backend connection error while registering customer.");
+      setTimeout(() => setErrorBanner(""), 4000);
+    }
   };
 
   const fetchAdminData = async () => {
@@ -115,7 +160,6 @@ export default function App() {
     } catch (err) {}
   };
 
-  // Trigger Online ML Retraining
   const handleRetrain = async () => {
     setIsRetraining(true);
     try {
@@ -138,26 +182,52 @@ export default function App() {
   const addToCart = (product) => {
     setCart((prev) => ({ ...prev, [product.id]: (prev[product.id] || 0) + 1 }));
     setLastInteractedItem(product);
+    setLastPurchasedReceipt(null);
     setNotification(`Added "${product.title}" to cart.`);
     setTimeout(() => setNotification(""), 3000);
   };
 
-  const categories = ["All", "Footwear", "Mobiles", "Laptops", "Audio", "Sports & Fitness", "Electronics Accessories"];
+  const categories = [
+    "All",
+    "Mobiles",
+    "Mobile Accessories",
+    "Laptops",
+    "Laptop Accessories",
+    "Footwear",
+    "Sports & Fitness",
+    "Audio",
+    "Smartwatches"
+  ];
 
   const filteredProducts = products.filter((item) => {
     const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const crossSellRecommendations = products.filter(
-    (item) => lastInteractedItem && (item.category === lastInteractedItem.cross_sell_category)
-  ).slice(0, 3);
+  // Top Storefront Rail Recommendations
+  const crossSellRecommendations = products
+    .filter((item) => {
+      if (!lastInteractedItem || item.id === lastInteractedItem.id) return false;
+      return item.category === lastInteractedItem.cross_sell_category;
+    })
+    .slice(0, 4);
 
-  const cartItemsArray = Object.entries(cart).map(([id, qty]) => {
-    const item = products.find((p) => p.id === parseInt(id));
-    return { ...item, qty };
-  }).filter(item => item && item.price !== undefined);
+  const cartItemsArray = Object.entries(cart)
+    .map(([id, qty]) => {
+      const item = products.find((p) => p.id === parseInt(id));
+      return { ...item, qty };
+    })
+    .filter((item) => item && item.price !== undefined);
+
+  // Live In-Cart Recommendations based on all items currently inside the user's cart
+  const cartIds = new Set(cartItemsArray.map((item) => item.id));
+  const targetCrossCategories = new Set(cartItemsArray.map((item) => item.cross_sell_category));
+  const inCartSuggestions = products
+    .filter((p) => !cartIds.has(p.id) && targetCrossCategories.has(p.category))
+    .slice(0, 3);
 
   const rawTotal = cartItemsArray.reduce((acc, curr) => acc + parseFloat(curr.price) * curr.qty, 0);
   const discountAmount = rawTotal * ((segmentData?.loyalty_discount_pct || 0) / 100);
@@ -165,7 +235,8 @@ export default function App() {
 
   const handleCheckout = async () => {
     if (!customerName.trim()) {
-      alert("Please enter Customer Name!");
+      setErrorBanner("Please enter a Customer Name to register this ID before placing an order!");
+      setTimeout(() => setErrorBanner(""), 4500);
       return;
     }
 
@@ -176,24 +247,48 @@ export default function App() {
 
     if (payloadItems.length === 0) return;
 
+    // Capture purchased categories before clearing cart for post-checkout recommendations
+    const purchasedSnapshot = [...cartItemsArray];
+
     try {
       const response = await fetch(`${API_BASE}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer_id: customerId,
-          customer_name: customerName,
+          customer_name: customerName.trim(),
           items: payloadItems,
           discount_pct: segmentData.loyalty_discount_pct || 0.0
         })
       });
 
-      if (!response.ok) throw new Error("Checkout failed");
-
       const resData = await response.json();
-      setNotification(`Success! Order #${resData.order_id} recorded in MySQL for ${resData.customer_name}! Paid: $${resData.final_paid}`);
+
+      if (!response.ok) {
+        setErrorBanner(resData.detail || "Checkout blocked due to Customer ID conflict.");
+        setTimeout(() => setErrorBanner(""), 5500);
+        return;
+      }
+
+      const purchasedIds = new Set(purchasedSnapshot.map((i) => i.id));
+      const purchasedCrossCats = new Set(purchasedSnapshot.map((i) => i.cross_sell_category));
+      const postOrderRecs = products
+        .filter((p) => !purchasedIds.has(p.id) && purchasedCrossCats.has(p.category))
+        .slice(0, 3);
+
+      setLastPurchasedReceipt({
+        ...resData,
+        purchasedItems: purchasedSnapshot,
+        relatedSuggestions: postOrderRecs
+      });
+
+      setNotification(
+        `Success! Order #${resData.order_id} recorded in MySQL for ${resData.customer_name} (ID #${resData.customer_id})! Paid: $${resData.final_paid}`
+      );
       setCart({});
-      fetchUserSegment();
+      setIsIdLocked(true);
+      fetchCustomerIdentityAndSegment(customerId);
+      fetchRegisteredCustomers();
       if (activeTab === "admin") {
         fetchAdminOrders();
         fetchAdminData();
@@ -204,7 +299,6 @@ export default function App() {
     }
   };
 
-  // Custom Recharts Scatter Tooltip
   const CustomScatterTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -227,29 +321,31 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setSelectedCategory("All")}>
             <div>
-              <span className="text-2xl font-black italic tracking-wide">Flipkart<span className="text-[#ffe500]">Plus</span></span>
+              <span className="text-2xl font-black italic tracking-wide">
+                Flipkart<span className="text-[#ffe500]">Plus</span>
+              </span>
               <div className="text-[10px] italic text-slate-200 -mt-1 flex items-center">
                 Explore <span className="text-[#ffe500] font-bold mx-0.5">Plus</span>
                 <Sparkles className="w-2.5 h-2.5 text-[#ffe500]" />
               </div>
             </div>
             <span className="bg-[#1c54b2] text-[#ffe500] text-[11px] font-bold px-2 py-0.5 rounded border border-[#ffe500]/30">
-              MySQL Port 3307
+              {products.length} Products • MySQL 3307
             </span>
           </div>
 
-          <div className="relative w-full md:w-72">
+          <div className="relative w-full md:w-64">
             <input
               type="text"
-              placeholder="Search shoes, laptops, mobiles..."
+              placeholder="Search phones, laptops, shoes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white text-slate-800 text-sm pl-10 pr-4 py-2 rounded-sm focus:outline-none shadow-inner"
+              className="w-full bg-white text-slate-800 text-sm pl-9 pr-3 py-1.5 rounded-sm focus:outline-none shadow-inner"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2" />
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2.5">
             <div className="bg-[#1c54b2] p-0.5 rounded flex">
               <button
                 onClick={() => setActiveTab("store")}
@@ -276,19 +372,41 @@ export default function App() {
               <input
                 type="number"
                 min="1"
-                max="50"
+                max="999"
                 value={customerId}
-                onChange={(e) => setCustomerId(parseInt(e.target.value) || 1)}
-                className="w-10 bg-white text-center font-bold rounded border py-0.5 text-slate-900"
+                onChange={(e) => setCustomerId(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-12 bg-white text-center font-bold rounded border py-0.5 text-slate-900"
               />
               <span className="font-black">Name:</span>
-              <input
-                type="text"
-                placeholder="Enter Name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                className="w-32 bg-white px-2 font-bold rounded border py-0.5 text-slate-900"
-              />
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  placeholder={isIdLocked ? "Registered" : "New Customer Name"}
+                  value={customerName}
+                  readOnly={isIdLocked}
+                  onChange={(e) => !isIdLocked && setCustomerName(e.target.value)}
+                  className={`w-36 px-2 font-bold rounded border py-0.5 ${
+                    isIdLocked
+                      ? "bg-slate-100 text-slate-700 border-slate-300 cursor-not-allowed pr-6"
+                      : "bg-white text-slate-900 border-blue-500"
+                  }`}
+                />
+                {isIdLocked ? (
+                  <Lock
+                    title={`ID #${customerId} is locked to ${customerName}`}
+                    className="w-3.5 h-3.5 text-emerald-700 absolute right-1.5"
+                  />
+                ) : (
+                  <button
+                    onClick={handleRegisterCustomer}
+                    title="Register this Name to ID"
+                    className="ml-1 bg-[#2874f0] hover:bg-[#1c54b2] text-white px-2 py-0.5 rounded font-bold flex items-center space-x-1"
+                  >
+                    <UserPlus className="w-3 h-3" />
+                    <span>Save</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -300,9 +418,9 @@ export default function App() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
-                selectedCategory === cat 
-                  ? "bg-[#2874f0] text-white shadow-sm" 
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
+                selectedCategory === cat
+                  ? "bg-[#2874f0] text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -314,31 +432,109 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto p-4 md:p-6">
         {notification && (
-          <div className="mb-4 p-3 bg-emerald-600 text-white rounded-md text-xs font-bold shadow-md flex items-center space-x-2 animate-pulse">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="mb-4 p-3 bg-emerald-600 text-white rounded-md text-xs font-bold shadow-md flex items-center space-x-2">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
             <span>{notification}</span>
+          </div>
+        )}
+
+        {errorBanner && (
+          <div className="mb-4 p-3 bg-rose-600 text-white rounded-md text-xs font-bold shadow-md flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <span>{errorBanner}</span>
+          </div>
+        )}
+
+        {/* POST-PURCHASE ORDER RECEIPT + RELATED UPSELL SUGGESTIONS */}
+        {lastPurchasedReceipt && activeTab === "store" && (
+          <div className="mb-6 bg-white border-2 border-emerald-500 rounded-xl p-5 shadow-lg">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-full">
+                  <PackageCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    Order #{lastPurchasedReceipt.order_id} Confirmed for {lastPurchasedReceipt.customer_name}!
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Paid <strong>${lastPurchasedReceipt.final_paid}</strong> (Saved ${lastPurchasedReceipt.discount_amount}) •{" "}
+                    Purchased:{" "}
+                    <span className="font-semibold text-slate-700">
+                      {lastPurchasedReceipt.purchasedItems.map((i) => i.title).join(", ")}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setLastPurchasedReceipt(null)}
+                className="text-slate-400 hover:text-slate-700 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {lastPurchasedReceipt.relatedSuggestions && lastPurchasedReceipt.relatedSuggestions.length > 0 && (
+              <div>
+                <div className="flex items-center space-x-1.5 text-xs font-black uppercase tracking-wider text-[#2874f0] mb-3">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Recommended Add-Ons For Your Purchase</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {lastPurchasedReceipt.relatedSuggestions.map((rec) => (
+                    <div
+                      key={rec.id}
+                      className="flex items-center space-x-3 p-2.5 bg-blue-50/50 border border-blue-100 rounded-lg"
+                    >
+                      <img src={rec.image_url} alt={rec.title} className="w-12 h-12 object-cover rounded shrink-0" />
+                      <div className="flex-grow min-w-0">
+                        <div className="text-xs font-bold text-slate-800 truncate">{rec.title}</div>
+                        <div className="text-xs font-black text-slate-900 mt-0.5">${parseFloat(rec.price).toFixed(2)}</div>
+                      </div>
+                      <button
+                        onClick={() => addToCart(rec)}
+                        className="bg-[#2874f0] hover:bg-[#1c54b2] text-white text-xs font-bold px-2.5 py-1.5 rounded shrink-0"
+                      >
+                        + Buy
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === "store" ? (
           <div>
             {segmentData && (
-              <div className={`mb-6 p-5 rounded-lg shadow-md text-white flex flex-col md:flex-row justify-between items-center gap-4 ${
-                segmentData.is_inactive 
-                  ? "bg-gradient-to-r from-rose-700 via-red-600 to-amber-600" 
-                  : "bg-gradient-to-r from-[#172337] via-[#2874f0] to-[#1c54b2]"
-              }`}>
+              <div
+                className={`mb-6 p-5 rounded-lg shadow-md text-white flex flex-col md:flex-row justify-between items-center gap-4 ${
+                  segmentData.is_inactive
+                    ? "bg-gradient-to-r from-rose-700 via-red-600 to-amber-600"
+                    : "bg-gradient-to-r from-[#172337] via-[#2874f0] to-[#1c54b2]"
+                }`}
+              >
                 <div className="flex items-center space-x-4">
                   <div className="p-3 bg-white/10 rounded-full backdrop-blur-sm">
-                    {segmentData.is_inactive ? <AlertCircle className="w-8 h-8 text-[#ffe500]" /> : <Zap className="w-8 h-8 text-[#ffe500]" />}
+                    {segmentData.is_inactive ? (
+                      <AlertCircle className="w-8 h-8 text-[#ffe500]" />
+                    ) : (
+                      <Zap className="w-8 h-8 text-[#ffe500]" />
+                    )}
                   </div>
                   <div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-black uppercase tracking-wider bg-[#ffe500] text-slate-900 px-2 py-0.5 rounded">
                         {segmentData.segment_name}
                       </span>
+                      <span className="text-xs font-bold text-white">
+                        {isIdLocked
+                          ? `Verified Member: ${customerName} (ID #${customerId})`
+                          : `Unregistered ID #${customerId} — Enter Name & Save`}
+                      </span>
                       <span className="text-xs text-white/80">
-                        Orders: {segmentData.frequency} | Recency: {segmentData.recency_days} days
+                        | Orders: {segmentData.frequency} | Recency: {segmentData.recency_days} days
                       </span>
                     </div>
                     <h2 className="text-lg font-extrabold mt-1">{segmentData.marketing_action}</h2>
@@ -358,35 +554,44 @@ export default function App() {
               </div>
             )}
 
+            {/* Context-Aware Cross-Sell Recommendations Rail */}
             {lastInteractedItem && crossSellRecommendations.length > 0 && (
               <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm mb-6">
                 <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
                   <div className="flex items-center space-x-2">
                     <Sparkles className="w-5 h-5 text-[#2874f0]" />
                     <h3 className="font-bold text-slate-800 text-sm md:text-base">
-                      Frequently Bought With <span className="text-[#2874f0]">"{lastInteractedItem.title}"</span>
+                      Recommended {lastInteractedItem.cross_sell_category} for{" "}
+                      <span className="text-[#2874f0]">"{lastInteractedItem.title}"</span>
                     </h3>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-medium">Smart Add-ons</span>
+                  <span className="text-[11px] bg-blue-50 text-[#2874f0] font-bold px-2.5 py-0.5 rounded-full">
+                    Smart Related Add-ons
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {crossSellRecommendations.map((rec) => (
-                    <div key={rec.id} className="flex items-center space-x-3 p-3 border border-slate-100 rounded-lg hover:border-[#2874f0] bg-slate-50/50 transition">
-                      <img src={rec.image_url} alt={rec.title} className="w-16 h-16 object-cover rounded shadow-sm" />
-                      <div className="flex-grow">
+                    <div
+                      key={rec.id}
+                      className="flex items-center space-x-3 p-3 border border-slate-100 rounded-lg hover:border-[#2874f0] bg-slate-50/60 transition"
+                    >
+                      <img src={rec.image_url} alt={rec.title} className="w-16 h-16 object-cover rounded shadow-sm shrink-0" />
+                      <div className="flex-grow min-w-0">
                         <span className="text-[9px] uppercase font-bold text-[#2874f0] bg-blue-50 px-1.5 py-0.5 rounded">
                           {rec.tag}
                         </span>
-                        <h4 className="text-xs font-bold text-slate-800 line-clamp-1 mt-1">{rec.title}</h4>
+                        <h4 className="text-xs font-bold text-slate-800 line-clamp-2 mt-1">{rec.title}</h4>
                         <div className="flex items-center space-x-2 mt-1">
                           <span className="text-sm font-extrabold text-slate-900">${parseFloat(rec.price).toFixed(2)}</span>
-                          <span className="text-xs text-slate-400 line-through">${parseFloat(rec.original_price).toFixed(2)}</span>
+                          <span className="text-[11px] text-slate-400 line-through">
+                            ${parseFloat(rec.original_price).toFixed(2)}
+                          </span>
                         </div>
                       </div>
                       <button
                         onClick={() => addToCart(rec)}
-                        className="bg-[#2874f0] hover:bg-[#1c54b2] text-white text-xs font-bold px-3 py-2 rounded shadow-sm transition"
+                        className="bg-[#2874f0] hover:bg-[#1c54b2] text-white text-xs font-bold px-2.5 py-2 rounded shadow-sm transition shrink-0"
                       >
                         + Add
                       </button>
@@ -398,25 +603,27 @@ export default function App() {
 
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-black text-slate-800 tracking-tight">
-                {selectedCategory === "All" ? "Featured Products" : `${selectedCategory} Collection`}
+                {selectedCategory === "All" ? "Complete Store Catalog" : `${selectedCategory} Collection`}
               </h2>
-              <span className="text-xs text-slate-500">{filteredProducts.length} items available</span>
+              <span className="text-xs font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-slate-200">
+                Showing {filteredProducts.length} of {products.length} items
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
               {filteredProducts.map((p) => (
-                <div 
-                  key={p.id} 
+                <div
+                  key={p.id}
                   onClick={() => setLastInteractedItem(p)}
                   className={`bg-white rounded-lg border overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col justify-between cursor-pointer group ${
                     lastInteractedItem?.id === p.id ? "border-[#2874f0] ring-1 ring-[#2874f0]" : "border-slate-200"
                   }`}
                 >
                   <div className="relative overflow-hidden h-48 bg-slate-100">
-                    <img 
-                      src={p.image_url} 
-                      alt={p.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
+                    <img
+                      src={p.image_url}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                     <span className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">
                       {p.category}
@@ -431,7 +638,7 @@ export default function App() {
                       <h3 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug group-hover:text-[#2874f0] transition">
                         {p.title}
                       </h3>
-                      
+
                       <div className="flex items-center space-x-1 mt-2">
                         <span className="bg-[#388e3c] text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center">
                           {p.rating} <Star className="w-2.5 h-2.5 fill-current ml-0.5" />
@@ -441,7 +648,9 @@ export default function App() {
 
                       <div className="flex items-baseline space-x-2 mt-2">
                         <span className="text-lg font-black text-slate-900">${parseFloat(p.price).toFixed(2)}</span>
-                        <span className="text-xs text-slate-400 line-through">${parseFloat(p.original_price).toFixed(2)}</span>
+                        <span className="text-xs text-slate-400 line-through">
+                          ${parseFloat(p.original_price).toFixed(2)}
+                        </span>
                       </div>
                     </div>
 
@@ -459,11 +668,12 @@ export default function App() {
               ))}
             </div>
 
+            {/* FLOATING CART WITH LIVE IN-CART RELATED ADD-ON SUGGESTIONS */}
             {cartItemsArray.length > 0 && (
-              <div className="fixed bottom-6 right-6 bg-white border border-slate-300 rounded-xl shadow-2xl p-5 w-84 z-40">
-                <div className="flex items-center justify-between border-b pb-2 mb-3">
-                  <div className="flex items-center space-x-2 font-bold text-slate-800">
-                    <ShoppingCart className="w-5 h-5 text-[#2874f0]" />
+              <div className="fixed bottom-4 right-4 bg-white border border-slate-300 rounded-xl shadow-2xl p-4 w-96 max-w-[95vw] z-40">
+                <div className="flex items-center justify-between border-b pb-2 mb-2.5">
+                  <div className="flex items-center space-x-2 font-bold text-slate-800 text-sm">
+                    <ShoppingCart className="w-4 h-4 text-[#2874f0]" />
                     <span>My Cart ({cartItemsArray.reduce((a, b) => a + b.qty, 0)} items)</span>
                   </div>
                   <button onClick={() => setCart({})} className="text-[11px] text-red-500 font-bold hover:underline">
@@ -471,20 +681,56 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs flex items-center space-x-2">
-                  <User className="w-4 h-4 text-[#2874f0]" />
-                  <span className="font-semibold text-slate-700">Ordering as: <strong>{customerName}</strong> (ID: #{customerId})</span>
+                <div className="mb-2.5 p-2 bg-blue-50 border border-blue-200 rounded text-xs flex items-center space-x-2">
+                  <User className="w-3.5 h-3.5 text-[#2874f0]" />
+                  <span className="font-semibold text-slate-700">
+                    Customer: <strong>{customerName || "Unregistered"}</strong> (ID: #{customerId})
+                  </span>
                 </div>
 
-                <div className="space-y-2 mb-4 max-h-40 overflow-y-auto pr-1">
+                <div className="space-y-1.5 mb-3 max-h-28 overflow-y-auto pr-1">
                   {cartItemsArray.map((item) => (
                     <div key={item.id} className="flex justify-between items-center text-xs text-slate-700">
-                      <span className="truncate w-36 font-medium">{item.title}</span>
+                      <span className="truncate w-48 font-medium">{item.title}</span>
                       <span className="text-slate-400">x{item.qty}</span>
-                      <span className="font-bold text-slate-900">${(parseFloat(item.price) * item.qty).toFixed(2)}</span>
+                      <span className="font-bold text-slate-900">
+                        ${(parseFloat(item.price) * item.qty).toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>
+
+                {/* Live Related Add-ons While Buying */}
+                {inCartSuggestions.length > 0 && (
+                  <div className="mb-3 p-2.5 bg-amber-50/70 border border-amber-200 rounded-lg">
+                    <div className="flex items-center space-x-1 text-[10px] font-black uppercase tracking-wider text-amber-800 mb-2">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Frequently Bought With Your Cart</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {inCartSuggestions.map((sug) => (
+                        <div
+                          key={sug.id}
+                          className="flex items-center justify-between bg-white p-1.5 rounded border border-amber-100 text-[11px]"
+                        >
+                          <div className="flex items-center space-x-2 min-w-0 pr-2">
+                            <img src={sug.image_url} alt={sug.title} className="w-8 h-8 object-cover rounded shrink-0" />
+                            <div className="truncate">
+                              <div className="font-bold text-slate-800 truncate">{sug.title}</div>
+                              <div className="text-slate-500 font-semibold">${parseFloat(sug.price).toFixed(2)}</div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => addToCart(sug)}
+                            className="bg-[#2874f0] hover:bg-[#1c54b2] text-white font-bold px-2 py-1 rounded text-[10px] shrink-0"
+                          >
+                            + Add
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="border-t pt-2 space-y-1 text-xs">
                   <div className="flex justify-between text-slate-500">
@@ -503,7 +749,7 @@ export default function App() {
 
                 <button
                   onClick={handleCheckout}
-                  className="mt-4 w-full bg-[#fb641b] hover:bg-[#e85a15] text-white font-black py-2.5 rounded text-xs uppercase tracking-wider transition shadow flex justify-center items-center space-x-2"
+                  className="mt-3 w-full bg-[#fb641b] hover:bg-[#e85a15] text-white font-black py-2.5 rounded text-xs uppercase tracking-wider transition shadow flex justify-center items-center space-x-2"
                 >
                   <PackageCheck className="w-4 h-4" />
                   <span>Place Order (Saves in MySQL)</span>
@@ -514,8 +760,6 @@ export default function App() {
         ) : (
           /* ADMIN ML DASHBOARD VIEW */
           <div className="space-y-6">
-            
-            {/* Control Bar with Retraining Trigger */}
             <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
               <div>
                 <h2 className="text-xl font-black text-slate-900 flex items-center space-x-2">
@@ -532,9 +776,7 @@ export default function App() {
                   onClick={handleRetrain}
                   disabled={isRetraining}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-md font-bold text-xs uppercase tracking-wider text-white transition shadow-sm ${
-                    isRetraining 
-                      ? "bg-slate-400 cursor-not-allowed" 
-                      : "bg-[#2874f0] hover:bg-[#1c54b2]"
+                    isRetraining ? "bg-slate-400 cursor-not-allowed" : "bg-[#2874f0] hover:bg-[#1c54b2]"
                   }`}
                 >
                   <Cpu className={`w-4 h-4 ${isRetraining ? "animate-spin" : ""}`} />
@@ -542,7 +784,11 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => { fetchAdminData(); fetchAdminOrders(); }}
+                  onClick={() => {
+                    fetchAdminData();
+                    fetchAdminOrders();
+                    fetchRegisteredCustomers();
+                  }}
                   className="flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded border border-slate-300 transition"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -551,10 +797,44 @@ export default function App() {
               </div>
             </div>
 
-            {/* VISUALIZATION GRID: SCATTER PLOT & DONUT PIE */}
+            <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 flex items-center space-x-1.5">
+                    <Lock className="w-4 h-4 text-emerald-600" />
+                    <span>Registered Customer ID Registry (1-to-1 Unique Mapping)</span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Each Customer ID is permanently bound to a single customer profile in MySQL
+                  </p>
+                </div>
+                <span className="text-xs font-bold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200">
+                  {registeredCustomers.length} Registered IDs
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {registeredCustomers.length === 0 ? (
+                  <span className="text-xs text-slate-400">No customers registered yet.</span>
+                ) : (
+                  registeredCustomers.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setCustomerId(c.id);
+                        setActiveTab("store");
+                      }}
+                      className="flex items-center space-x-2 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-[#2874f0] px-3 py-1.5 rounded-md text-xs transition"
+                    >
+                      <span className="font-black text-[#2874f0]">ID #{c.id}</span>
+                      <span className="font-bold text-slate-800">{c.name}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* 2D Recency vs. Monetary Scatter Plot */}
               <div className="lg:col-span-2 bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-4 border-b pb-2">
                   <div className="flex items-center space-x-2">
@@ -571,19 +851,31 @@ export default function App() {
                     <ResponsiveContainer width="100%" height="100%">
                       <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                        <XAxis 
-                          type="number" 
-                          dataKey="recency" 
-                          name="Recency" 
+                        <XAxis
+                          type="number"
+                          dataKey="recency"
+                          name="Recency"
                           unit=" days"
-                          label={{ value: 'Recency (Days Since Last Order)', position: 'insideBottom', offset: -10, fontSize: 11, fill: '#64748b' }}
+                          label={{
+                            value: "Recency (Days Since Last Order)",
+                            position: "insideBottom",
+                            offset: -10,
+                            fontSize: 11,
+                            fill: "#64748b"
+                          }}
                         />
-                        <YAxis 
-                          type="number" 
-                          dataKey="monetary" 
-                          name="Monetary" 
+                        <YAxis
+                          type="number"
+                          dataKey="monetary"
+                          name="Monetary"
                           unit="$"
-                          label={{ value: 'Monetary Spend ($)', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#64748b' }}
+                          label={{
+                            value: "Monetary Spend ($)",
+                            angle: -90,
+                            position: "insideLeft",
+                            fontSize: 11,
+                            fill: "#64748b"
+                          }}
                         />
                         <Tooltip content={<CustomScatterTooltip />} />
                         {[0, 1, 2, 3].map((clusterId) => (
@@ -604,14 +896,15 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Segment Distribution Donut Chart */}
               <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div>
                   <div className="flex items-center space-x-2 mb-2 border-b pb-2">
                     <PieIcon className="w-5 h-5 text-[#2874f0]" />
                     <h3 className="font-extrabold text-slate-800 text-sm">Customer Share by Segment</h3>
                   </div>
-                  <p className="text-[11px] text-slate-500 mb-4">Breakdown of behavioral clusters across active audience</p>
+                  <p className="text-[11px] text-slate-500 mb-4">
+                    Breakdown of behavioral clusters across active audience
+                  </p>
                 </div>
 
                 <div className="h-60 w-full">
@@ -633,7 +926,7 @@ export default function App() {
                           ))}
                         </Pie>
                         <Tooltip formatter={(value, name) => [`${value} Users`, name]} />
-                        <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                        <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }} />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
@@ -645,11 +938,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {adminClusters.clusters.map((c) => (
-                <div 
-                  key={c.cluster_id} 
+                <div
+                  key={c.cluster_id}
                   className="p-4 bg-white border border-slate-200 rounded-lg shadow-sm border-t-4"
                   style={{ borderTopColor: CLUSTER_COLORS[c.cluster_id] || "#2563eb" }}
                 >
@@ -658,20 +950,27 @@ export default function App() {
                   </span>
                   <div className="text-2xl font-black text-slate-900 mt-1">{c.customer_count} Customers</div>
                   <div className="text-xs text-slate-500 mt-2 space-y-0.5">
-                    <div>Avg Spend: <span className="font-bold text-slate-800">${c.avg_monetary}</span></div>
-                    <div>Avg Recency: <span className="font-bold text-slate-800">{c.avg_recency} days</span></div>
-                    <div>Frequency: <span className="font-bold text-slate-800">{c.avg_frequency} orders</span></div>
+                    <div>
+                      Avg Spend: <span className="font-bold text-slate-800">${c.avg_monetary}</span>
+                    </div>
+                    <div>
+                      Avg Recency: <span className="font-bold text-slate-800">{c.avg_recency} days</span>
+                    </div>
+                    <div>
+                      Frequency: <span className="font-bold text-slate-800">{c.avg_frequency} orders</span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Live MySQL Database Audit Table */}
             <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h2 className="text-lg font-black text-slate-900">Live Customer Orders (MySQL / XAMPP)</h2>
-                  <p className="text-xs text-slate-500">Relational records stored in `orders` and `order_items` (Port 3307)</p>
+                  <p className="text-xs text-slate-500">
+                    Relational records stored in `orders` and `order_items` (Port 3307)
+                  </p>
                 </div>
               </div>
 
@@ -706,11 +1005,14 @@ export default function App() {
                           </td>
                           <td className="p-3">
                             <div className="space-y-1">
-                              {ord.items && ord.items.map((it, idx) => (
-                                <div key={idx} className="text-slate-800">
-                                  • <span className="font-semibold">{it.product_title}</span> <span className="font-bold text-slate-500">(x{it.quantity})</span> - ${parseFloat(it.unit_price).toFixed(2)}
-                                </div>
-                              ))}
+                              {ord.items &&
+                                ord.items.map((it, idx) => (
+                                  <div key={idx} className="text-slate-800">
+                                    • <span className="font-semibold">{it.product_title}</span>{" "}
+                                    <span className="font-bold text-slate-500">(x{it.quantity})</span> - $
+                                    {parseFloat(it.unit_price).toFixed(2)}
+                                  </div>
+                                ))}
                             </div>
                           </td>
                           <td className="p-3 font-bold">{ord.total_items} items</td>
@@ -727,7 +1029,6 @@ export default function App() {
                 </table>
               </div>
             </div>
-
           </div>
         )}
       </main>
